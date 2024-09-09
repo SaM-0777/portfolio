@@ -6,3 +6,9 @@
 
 }
 
+@layer components {
+  .no-scrollbar {
+    scrollbar-width: none;
+    
+  }
+}

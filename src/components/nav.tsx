@@ -19,18 +19,19 @@ const navLinks = [
 export default function Nav({ className }: NavProps) {
   return (
     <nav className={cn("flex items-center gap-x-4", className)}>
-      {navLinks.map((link) => (
+      {navLinks.map((link, i) => (
         <motion.div
+          key={"nav-" + i}
           initial="initial"
           whileHover="hover"
-          className="border border-white rounded-full px-4 py-2"
+          className="border border-white mix-blend-exclusion rounded-full px-4 py-2"
         >
           <Link
             key={"nav-" + link.name}
             href={`${link.href}`}
             className="relative w-full h-full flex items-center gap-x-2"
           >
-            <span className="w-1.5 h-1.5 aspect-square bg-white rounded-full" />
+            <span className="w-1.5 h-1.5 aspect-square bg-white mix-blend-exclusion rounded-full" />
             <div className="relative overflow-hidden">
               <div className=" flex items-center">
                 {link.name.split("").map((char, i) => (
@@ -45,7 +46,7 @@ export default function Nav({ className }: NavProps) {
                       delay: i * STAGGER,
                       ease: "easeInOut",
                     }}
-                    className="inline-block text-xs leading-none"
+                    className="inline-block text-xs leading-none mix-blend-exclusion"
                   >
                     {char}
                   </motion.span>
@@ -64,7 +65,7 @@ export default function Nav({ className }: NavProps) {
                       delay: i * STAGGER,
                       ease: "easeInOut",
                     }}
-                    className="inline-block text-xs leading-none"
+                    className="inline-block text-xs leading-none mix-blend-exclusion"
                   >
                     {char}
                   </motion.span>
