@@ -3,6 +3,7 @@ import React, { type HTMLAttributes } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import Logo from "./icons/logo";
 
 export interface NavProps {
   className?: HTMLAttributes<HTMLElement>["className"];
@@ -11,14 +12,17 @@ export interface NavProps {
 const DURATION = 0.2;
 const STAGGER = 0.025;
 const navLinks = [
-  { name: "Home", href: "/" },
   { name: "Works", href: "/works" },
+  { name: "Skills", href: "/skills" },
   { name: "Contact", href: "/contact" },
 ];
 
 export default function Nav({ className }: NavProps) {
   return (
-    <nav className={cn("flex items-center gap-x-4", className)}>
+    <nav className={cn("flex items-center gap-x-3", className)}>
+      <Link href={"/"} >
+        <Logo className="w-12 text-white" />
+      </Link>
       {navLinks.map((link, i) => (
         <motion.div
           key={"nav-" + i}
@@ -46,7 +50,7 @@ export default function Nav({ className }: NavProps) {
                       delay: i * STAGGER,
                       ease: "easeInOut",
                     }}
-                    className="inline-block text-xs leading-none mix-blend-exclusion"
+                    className="inline-block text-[10px] leading-[10px] sm:text-xs sm:leading-none uppercase mix-blend-exclusion"
                   >
                     {char}
                   </motion.span>
@@ -65,7 +69,7 @@ export default function Nav({ className }: NavProps) {
                       delay: i * STAGGER,
                       ease: "easeInOut",
                     }}
-                    className="inline-block text-xs leading-none mix-blend-exclusion"
+                    className="inline-block text-[10px] leading-[10px] sm:text-xs sm:leading-none uppercase mix-blend-exclusion"
                   >
                     {char}
                   </motion.span>

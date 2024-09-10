@@ -1,11 +1,8 @@
 "use client";
-import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import AnimatedPage from "@/wrapper/animated-page";
 
-const AnimatedPage = dynamic(() => import("@/wrapper/animated-page"), {
-  ssr: false,
-});
 export default function ContactPage() {
   return (
     <AnimatedPage>
@@ -48,6 +45,9 @@ export default function ContactPage() {
                 </Link>
                 <Link href={"https://www.linkedin.com/in/sam-07-dev/"} className="text-sm font-light block uppercase" >
                   linkedin.com/in/sam-07-dev
+                </Link>
+                <Link href={"https://x.com/Samrn888"} className="text-sm font-light block uppercase" >
+                  x.com/Samrn888
                 </Link>
               </div>
             </div>

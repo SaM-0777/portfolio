@@ -1,8 +1,8 @@
-import dynamic from "next/dynamic";
+import AnimatedPage from "@/wrapper/animated-page";
 import works from "@/constant/works";
 import WorkDetails from "../work-details";
 
-const AnimatedPage = dynamic(() => import("@/wrapper/animated-page"), { ssr: false })
+
 export default function PhotopidiaPage() {
   return (
     <AnimatedPage>

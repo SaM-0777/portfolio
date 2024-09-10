@@ -1,8 +1,8 @@
-import dynamic from "next/dynamic";
+import AnimatedPage from "@/wrapper/animated-page";
 import WorkDetails from "../work-details";
 import works from "@/constant/works";
 
-const AnimatedPage = dynamic(() => import("@/wrapper/animated-page"), { ssr: false })
+
 export default function ClaviusPage() {
   return (
     <AnimatedPage>

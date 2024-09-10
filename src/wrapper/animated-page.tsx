@@ -1,22 +1,31 @@
 "use client";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-const WIDTH = window.innerWidth;
-const HEIGHT = window.innerHeight;
+
 export default function AnimatedPage({
   children
 }: {
   children: React.ReactNode
 }) {
+  const [width, setWidth] = useState<number>(0);
+  const [height, setHeight] = useState<number>(0);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setWidth(window.innerWidth);
+      setHeight(window.innerHeight);
+    }
+  }, [])
+
   return (
     <>
       {children}
         <motion.div
-          onAnimationComplete={() => console.log("ended: ")}
           animate={{
-            width: [0, WIDTH, WIDTH, WIDTH],
-            height: [8, 8, HEIGHT, 0],
-            y: [0, 0, 0, HEIGHT],
+            width: [0, width, width, width],
+            height: [8, 8, height, 0],
+            y: [0, 0, 0, height],
             transition: {
               duration: 1,
               ease: "easeInOut",

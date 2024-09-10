@@ -1,12 +1,10 @@
 "use client";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import AnimatedPage from "@/wrapper/animated-page";
 import works from "@/constant/works";
 
-const AnimatedPage = dynamic(() => import("@/wrapper/animated-page"), {
-  ssr: false,
-});
+
 export default function WorksPage() {
   return (
     <AnimatedPage>
