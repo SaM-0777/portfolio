@@ -382,7 +382,7 @@ export default function Home() {
 
               <ul className="list-disc list-outside ml-5 text-ink-black/80 leading-relaxed space-y-2 text-base pt-2">
                 <li>
-                  Built and maintained the core Next.js frontend for an RaaS  platform,
+                  Built and maintained the core Next.js frontend for RaaS platform,
                   focusing on creating intuitive interfaces for complex operational
                   workflows and data visualization
                 </li>
@@ -391,7 +391,7 @@ export default function Home() {
                   utilizing REST APIs and gRPC to ensure seamless, real-time data delivery
                 </li>
                 <li>
-                  Designed reusable component systems and rapid internal
+                  Designed reusable component systems for rapid internal
                   prototypes, accelerating iteration cycles for monitoring
                   tools and deployment
                 </li>
