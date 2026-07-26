@@ -43,7 +43,8 @@ export default function Home() {
 
           <div className="flex gap-10 pt-2">
             <Link
-              href="mailto:sam@soumyaranjansahu.com"
+              href="mailto:soumyaranjansahu.711@gmail.com"
+              target="_blank"
               className="text-ink-black/60 hover:text-oxblood transition-colors duration-300"
               aria-label="Email"
             >
@@ -347,22 +348,16 @@ export default function Home() {
 
               <ul className="list-disc list-outside ml-5 text-ink-black/80 leading-relaxed space-y-2 text-base pt-2">
                 <li>
-                  Engineered ML-driven infrastructure for marketing workflows,
-                  developing ranking algorithms that optimize content delivery
-                  and brand advertising reach based on real-time user engagement
-                  and social graph metrics
+                  Engineered ML-driven infrastructure for user content and activity workflows,
+                  developing content ranking algorithms that optimize content delivery
+                  and brand advertising reach based on real-time user engagement and
+                  social graph metrics
                 </li>
                 <li>
-                  Designed and implemented real-time data pipelines processing
-                  large-scale social and market signals, powering production
-                  reputation models and continuous learning systems for
-                  automated content filtering
+                  Designed and implemented real-time data pipelines processing large-scale social and market signals, powering production reputation models for automated content filtering
                 </li>
                 <li>
-                  Developed scalable, event-driven architectures to support
-                  AI-assisted analytics and real-time inference pipelines,
-                  significantly improving system observability and model
-                  iteration speed
+                  Developed scalable event-driven systems and AI-assisted analytics pipelines, owning features from design through production and improving reliability, observability and iteration speed
                 </li>
               </ul>
             </div>
@@ -387,20 +382,18 @@ export default function Home() {
 
               <ul className="list-disc list-outside ml-5 text-ink-black/80 leading-relaxed space-y-2 text-base pt-2">
                 <li>
-                  Built and maintained the core Next.js frontend for an
-                  infrastructure platform, focusing on creating intuitive
-                  interfaces for complex operational workflows and data
-                  visualization
+                  Built and maintained the core Next.js frontend for an RaaS  platform,
+                  focusing on creating intuitive interfaces for complex operational
+                  workflows and data visualization
                 </li>
                 <li>
-                  Contributed to system architecture across UI and backend APIs,
-                  ensuring highly scalable integration between real-time data
-                  services and user-facing dashboards
+                  Engineered scalable integrations between user-facing dashboards and backend services,
+                  utilizing REST APIs and gRPC to ensure seamless, real-time data delivery
                 </li>
                 <li>
                   Designed reusable component systems and rapid internal
-                  prototypes to validate product ideas, accelerating iteration
-                  cycles for monitoring tools and deployment interfaces
+                  prototypes, accelerating iteration cycles for monitoring
+                  tools and deployment
                 </li>
               </ul>
             </div>
