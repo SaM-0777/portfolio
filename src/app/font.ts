@@ -1,47 +1,34 @@
-import { Sora } from "next/font/google";
-import localFont from "next/font/local";
+import {
+  EB_Garamond,
+  Lora,
+  Source_Sans_3,
+  Source_Serif_4,
+} from "next/font/google";
 
-export const sora = Sora({
-  variable: "--font-sora",
-  preload: true,
-  style: ["normal"],
+export const ebGaramond = EB_Garamond({
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800"],
-  display: "auto",
+  variable: "--font-eb-garamond",
+  display: "swap",
+  preload: true,
 });
 
-export const humane = localFont({
+export const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-lora",
+  display: "swap",
   preload: true,
-  variable: "--font-humane",
-  src: [
-    {
-      path: "./fonts/HumaneBold.woff2",
-      style: "normal",
-    },
-    {
-      path: "./fonts/HumaneExtraLight.woff2",
-      style: "normal",
-    },
-    {
-      path: "./fonts/HumaneLight.woff2",
-      style: "normal",
-    },
-    {
-      path: "./fonts/HumaneMedium.woff2",
-      style: "normal",
-    },
-    {
-      path: "./fonts/HumaneRegular.woff2",
-      style: "normal",
-    },
-    {
-      path: "./fonts/HumaneSemiBold.woff2",
-      style: "normal",
-    },
-    {
-      path: "./fonts/HumaneThin.woff2",
-      style: "normal",
-    },
-  ],
-  display: "auto",
+});
+
+export const sourceSans = Source_Sans_3({
+  subsets: ["latin"],
+  variable: "--font-source-sans",
+  display: "swap",
+  preload: true,
+});
+
+export const sourceSerif = Source_Serif_4({
+  subsets: ["latin"],
+  variable: "--font-source-serif",
+  display: "swap",
+  preload: true,
 });

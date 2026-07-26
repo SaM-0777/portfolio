@@ -1,14 +1,30 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 :root {
-
+  --background: var(--color-parchment);
+  --foreground: var(--color-ink-black);
 }
 
-@layer components {
-  .no-scrollbar {
-    scrollbar-width: none;
-    
+@theme inline {
+  --color-oxblood: #6c1818;
+  --color-deep-forest: #1f3a2e;
+  --color-parchment: #f0e6d2;
+  --color-candle-gold: #c9a86a;
+  --color-ink-black: #14110e;
+  --color-mahogany: #4a2c1d;
+
+  /* Map the CSS variables to Tailwind's color engine */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-eb-garamond: var(--font-eb-garamond);
+  --font-lora: var(--font-lora);
+  --font-source-sans: var(--font-source-sans);
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
   }
 }
