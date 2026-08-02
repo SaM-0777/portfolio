@@ -144,6 +144,59 @@ export default function Home() {
           <div className="flex flex-col md:flex-row gap-4 md:gap-12">
             <div className="md:w-1/4 shrink-0 pt-1">
               <span className="text-sm font-semibold uppercase tracking-widest text-ink-black/50">
+                June 2026
+              </span>
+            </div>
+
+            <div className="md:w-3/4 space-y-4">
+              <h4 className="text-2xl font-semibold text-oxblood font-eb-garamond">
+                Zulu: Vision Action Model
+              </h4>
+
+              <p className="text-ink-black/80 leading-relaxed text-base">
+                Zulu is a vision action model architecture trained entirely from scratch, integrating a DINOv2 vision encoder with a novel flow matching backbone for continuous action generation.
+                This experiment validates that high-performance robotic policy learning can be achieved without relying on the computational overhead of traditional,
+                heavy Vision-Language Model (VLM) backbones
+              </p>
+
+              <div className="inline-flex items-center gap-4">
+                <Link
+                  href={"https://github.com/SaM-0777/zulu"}
+                  target="_blank"
+                  className="text-base font-medium hover:underline inline-flex items-center gap-0.5"
+                >
+                  <span>Source Code</span>
+                  <span>
+                    <ArrowUpRight className="size-4" />
+                  </span>
+                </Link>
+                <Link
+                  href={"https://huggingface.co/SamLegion888/zulu"}
+                  target="_blank"
+                  className="text-base font-medium hover:underline inline-flex items-center gap-0.5"
+                >
+                  <span>Model</span>
+                  <span>
+                    <ArrowUpRight className="size-4" />
+                  </span>
+                </Link>
+                <Link
+                  href={"https://huggingface.co/datasets/SamLegion888/DreamZero-DROID-Data-2000"}
+                  target="_blank"
+                  className="text-base font-medium hover:underline inline-flex items-center gap-0.5"
+                >
+                  <span>Dataset</span>
+                  <span>
+                    <ArrowUpRight className="size-4" />
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4 md:gap-12">
+            <div className="md:w-1/4 shrink-0 pt-1">
+              <span className="text-sm font-semibold uppercase tracking-widest text-ink-black/50">
                 July 2026
               </span>
             </div>

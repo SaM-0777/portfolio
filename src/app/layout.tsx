@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`relative w-screen bg-background text-foreground font-body antialiased ${ebGaramond.variable} ${lora.variable} ${sourceSans.variable} ${sourceSerif.variable}  font-lora`}
+        className={`relative w-screen bg-white/80 text-foreground font-body antialiased ${ebGaramond.variable} ${lora.variable} ${sourceSans.variable} ${sourceSerif.variable}  font-lora`}
       >
         {children}
       </body>
