@@ -190,6 +190,15 @@ export default function Home() {
                     <ArrowUpRight className="size-4" />
                   </span>
                 </Link>
+                <Link
+                  href={"/blog/zulu"}
+                  className="text-base font-medium hover:underline inline-flex items-center gap-0.5"
+                >
+                  <span>Technical Report</span>
+                  <span>
+                    <ArrowUpRight className="size-4" />
+                  </span>
+                </Link>
               </div>
             </div>
           </div>
