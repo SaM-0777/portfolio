@@ -1,0 +1,181 @@
+## III. Training Setup
+
+<div className="mt-2" >
+ZULU is trained using a specialized subset of robotic manipulation data sourced from the [DreamZero-DROID-Data-2000](https://huggingface.co/datasets/SamLegion888/DreamZero-DROID-Data-2000) dataset formatted under the LeRobot v2.1 structure. This dataset comprises 2,000 demonstration episodes focused on real-world household chores and pick-and-place tasks.
+
+<div className="mt-2" >
+### ***A. Dataset and Physical Embodiment***
+
+<div className="mt-4" >
+
+### ***1) Multi-View Visual System***
+
+The dataset provides synchronized multi-camera RGB video captured at 15 FPS with an original resolution of $320 \times 180$ pixels. Observations are collected across three distinct camera perspectives:
+
+  <ul className="w-full list-disc pl-6 my-4 space-y-4" >
+    <li>
+      - **Exterior Left 1:** Side-angle contextual view of the workstation.
+    </li>
+    <li>
+      - **Exterior Left 2:** Secondary side-angle view providing alternative spatial depth.
+    </li>
+    <li>
+      - **Wrist Left 1:** Hand-centric camera attached to the arm for close-up manipulation tracking.
+    </li>
+  </ul>
+</div>
+
+
+<div className="mt-4" >
+
+### ***2) Robot Embodiment***
+
+The physical demonstrations are executed on a Franka Emika Panda robotic arm equipped with a parallel-jaw gripper:
+
+  <ul className="w-full list-disc pl-6 my-4 space-y-4" >
+    <li>
+      - **State Vector:** Captures 7-DoF joint positions combined with the 1-DoF gripper state ($S_{horizon}$).
+    </li>
+    <li>
+      - **Action Trajectory:** Represents joint position targets and gripper commands chunked over a forward trajectory window ($A_{horizon}$)
+    </li>
+  </ul>
+
+</div>
+
+</div>
+
+<div className="mt-2" >
+### ***B. Data Preprocessing and Transformations***
+
+To prepare raw observations for the multi-modal Diffusion Transformer, data samples undergo a standardized processing pipeline:
+
+  <ul className="w-full list-disc pl-6 my-4 space-y-4" >
+    <li>
+      - **Visual Augmentations:** Camera frames are randomly rescaled with a factor of 0.95 and resized to a target tensor dimension of $160 \times 320$ pixels. Mild photometric color jittering (adjusting brightness, contrast, saturation, and hue) is applied across all camera streams simultaneously to improve generalization against lighting shifts.
+    </li>
+    <li>
+      - **Quantile Normalization:** Both state and action vectors are normalized using $q_{99}$ quantile normalization, mapping physical joint values into a bounded range while mitigating the impact of extreme mechanical velocity spikes.
+    </li>
+    <li>
+      - **Relative Actions:** Action joint targets are formulated relative to the robot's current joint positions, ensuring the network models differential joint trajectories rather than absolute spatial coordinates.
+    </li>
+    <li>
+      - **Multi-modal Stacking:** Visual views are concatenated along the spatial sequence dimension, while states, actions, and text annotations are collated into unified batched features.
+    </li>
+  </ul>
+
+</div>
+
+<div className="mt-2" >
+### ***C. Training Pipeline and Optimization***
+
+<div className="mt-4" >
+
+### ***1) Optimization Hyperparameters***
+
+  <ul className="w-full list-disc pl-6 my-4 space-y-4" >
+    <li>
+      - **Optimizer:** AdamW with modified momentum parameters ($\beta_1 = 0.95$, $\beta_2 = 0.95$), weight decay set to $0.01$, and numerical stability epsilon $\epsilon = 1 \times 10^{-8}$.
+    </li>
+    <li>
+      - **Learning Rate Schedule:** Controlled via a cosine decay learning rate scheduler with an initial warmup ratio of $0.05$.
+    </li>
+    <li>
+      - **Compute Precision:** Executed natively in bfloat16 to maximize throughput on modern GPU accelerators while maintaining numerical stability for flow-matching timesteps.
+    </li>
+    <li>
+      - **Distributed Batching:** Configured with a fixed global batch size of 32, dynamically distributed using gradient accumulation steps across physical training devices.
+    </li>
+  </ul>
+</div>
+
+
+<div className="mt-4" >
+
+### ***2) Loss Formulation***
+
+The model is optimized end-to-end using a joint objective function:
+
+$$
+\mathcal{L}_{total} 
+= 
+\lambda_{action} \cdot \mathcal{L}_{action} + \lambda_{dynamics} \cdot \mathcal{L}_{dynamics}
+$$
+
+Where $\mathcal{L}_{action}$ is the flow-matching Mean Squared Error computed over the predicted action vector fields, and $\mathcal{L}_{dynamics}$ is the residual next-frame MSE loss evaluated over predicted DINOv2 visual patch deltas.
+</div>
+</div>
+
+<div className="mt-2" >
+### ***D. Current Status, Challenges, and Future Directions***
+
+As this technical report presents the first exploratory iteration of the ZULU framework, the primary goal was to validate the structural token-routing and flow-matching mechanics. This section details the current physical footprint of the architecture, the engineering hurdles encountered during the initial training runs, and the roadmap for future scaling.
+
+<div className="mt-4" >
+
+### ***1) Model Scale and Current Status***
+
+The first iteration of the ZULU architecture is deliberately constrained to serve as a lightweight proof-of-concept. The Diffusion Transformer (DiT) backbone is constructed with the following structural dimensions:
+
+
+  <ul className="w-full list-disc pl-6 my-4 space-y-4" >
+    <li>
+      - **Layers:** 12
+    </li>
+    <li>
+      - **Attention Heads:** 16
+    </li>
+    <li>
+      - **Hidden Dimension:** 1024
+    </li>
+    <li>
+      - **Feed-Forward Dimension:** 4096
+    </li>
+    <li>
+      - **Input/Output Dimension:** 768
+    </li>
+    <li>
+      - **Frequency Dimension:** 256
+    </li>
+  </ul>
+
+This configuration results in exactly 216 Million trainable parameters. When accounting for the frozen spatial priors (the DINOv2 base) and the frozen semantic conditioning (the FLAN-T5 text encoder), the total system footprint reaches 412.21 Million parameters. By heavily leveraging these pre-trained frozen representations, ZULU successfully demonstrates that complex spatiotemporal token routing and flow-matching can be executed within a highly accessible parameter budget, avoiding the massive hardware overhead of learning visual physics from scratch.
+
+</div>
+
+<div className="mt-4" >
+
+### ***2) Future Directions***
+
+As an open-source experiment, ZULU architecture lays the groundwork for several advanced optimizations and scaling opportunities.
+
+  <ul className="w-full list-disc pl-6 my-4 space-y-4" >
+    <li>
+      - **Training Optimization using DeepSpeed:** To move beyond the limitations of standard PyTorch DDP, future iterations will benefit heavily from integrating Microsoft's DeepSpeed specifically the Zero Redundancy Optimizer (ZeRO). By partitioning optimizer states, gradients, and model parameters across GPUs (ZeRO Stages 1 through 3), the VRAM footprint per device could be drastically reduced. This would allow researchers to significantly increase the global batch size, expand the context window, or scale the DiT parameter count (e.g., to 1B+ parameters) without requiring extreme-memory accelerator hardware.
+    </li>
+    <li>
+      - **Optimization of Attention and Visual Context Mechanisms:** Currently, ZULU passes all extracted DINOv2 patches directly into the transformer, resulting in a dense and computationally heavy sequence. Future iterations should explore visual context optimization strategies to reduce this burden.
+    </li>
+    <li>
+      - **Scaling for Long-Horizon Tasks and Reasoning:** The current architecture operates on a short, action horizon which is ideal for immediate physical dynamics but insufficient for complex, multi-stage reasoning. Future expansions of the ZULU paradigm will focus on long-horizon task execution. Expansion of temporal context window and integrating history-aware memory tokens would further enable the model to handle tasks requiring prolonged physical reasoning and multi-step planning.
+    </li>
+  </ul>
+
+</div>
+</div>
+
+<div className="mt-2" >
+### ***E. Conclusion and Discussion***
+
+In this technical report, I explored an alternative approach to Vision-Language-Action modeling by introducing ZULU, a 216M-parameter architecture. Rather than relying on massive generative vision-language backbones, ZULU successfully demonstrates how to ground a flow-matching Diffusion Transformer directly in pre-trained spatial priors like DINOv2. By engineering a custom block-causal attention mask, the model strictly manages the temporal routing of interleaved images, continuous actions, and proprioceptive states. While this report presents an early-stage exploration rather than a fully converged foundation model, I open-surce the complete architectural concept and implementation. My hope is that this structural blueprint provides a valuable starting point for further researches, looking to explore generative, flow-matching robotic control.
+
+Currently, the model remains severely undertrained due to slow training throughput, requiring significantly more convergence time to reach full optimization. Nevertheless, qualitative closed-loop evaluations of an early checkpoint at 16,000 training steps reveal promising indicators for future exploration. Notably, during closed-loop execution, the robotic arm exhibits physically stable continuous trajectories without dangerous vibrations, rapid oscillation, or continuous jerking—a common failure mode in under-converged policy networks. While these initial robot movements remain small in magnitude and are not yet sufficient to complete full task, they demonstrate meaningful, non-random directional control aligned with visual context.
+
+To explore domain adaptation, I conducted a fine-tuning experiment on this 16,000-step checkpoint using Low-Rank Adaptation (LoRA). The model was fine-tuned for 5,000 steps on a custom dataset of 56 pick-and-place demonstration episodes collected via Robosuite teleoperation. Although task execution performance remains far from optimal, the fine-tuned model consistently preserved non-erratic trajectory output.
+
+Due to severe compute and hardware resource constraints, this preliminary report cannot provide exhaustive benchmark evaluations, formal quantitative metrics, or extensive ablation studies. However, the emergence of relatively smooth, physically coherent motor steps despite severe undertraining suggests that driving a block-causal, flow-matching Diffusion Transformer with pre-trained vision representations is an architectural direction well worth pursuing with scaled compute.
+
+</div>
+
+</div>

@@ -1,0 +1,47 @@
+## I. Introduction
+
+<div className="mt-2" >
+### ***A. Architectural Trends in Vision-Language-Action Systems***
+
+The pursuit of generalist robotics control has increasingly relied on the development of Vision-Language-Action (VLA) models. Currently, the dominant trend in the field involves adapting massive vision-language backbones—often originally designed for internet-scale multi-modal reasoning—to interpret environmental observations and output physical actions. While these large-scale architectures demonstrate remarkable semantic understanding, they inherently require immense computational resources to train and deploy. Relying on heavy, parameter-dense layers to process visual inputs introduces significant memory constraints and computational overhead, making it difficult to explore continuous robotic control without access to large-scale computing infrastructure.
+</div>
+
+
+<div className="mt-4" >
+### ***B. From Video Diffusion to World Action Models***
+
+A compelling alternative to standard VLA design is the World Action Model paradigm, as demonstrated by DreamZero, which utilizes an auto-regressive video diffusion model for the joint prediction of video frames and continuous actions. At its core, DreamZero relies on a highly structured attention mechanism to process multi-modal inputs. The architecture interleaves visual, proprioceptive state, and continuous action tokens into a unified sequence. It applies a block-causal self-attention mask across this sequence, allowing the model to strictly regulate temporal dependencies—ensuring that action and state tokens attend to the correct historical visual context without leaking future information. Language instructions are subsequently injected into the network via dedicated cross-attention layers, conditioning the physical trajectories on high-level semantic goals. While this token-routing architecture is elegant, the original DreamZero model operates at a massive 14-billion-parameter scale, largely because the backbone is tasked with learning the physical dynamics of the environment by predicting future world states and actions using video as representation. This presents an intriguing opportunity for exploration: what if we adapt this exact attention mechanism but replace the heavy visual processing burden with a pre-trained Vision Transformer? By feeding the attention blocks with features from a vision transformer that natively provides dense patch-level representations, clear object boundary detection, and consistent geometric alignment, it becomes possible to explore this advanced token-routing paradigm without requiring a massive parameter footprint.
+</div>
+
+<div className="mt-4" >
+### ***C. Proposed Architecture of ZULU***
+
+To explore this alternative approach, I present ZULU, an exploratory World Action Model architecture. ZULU is designed to test whether the structural token-routing of a world action model can be successfully driven by DINOv2, a pre-trained Vision Transformer rather than a massive generative backbone. To implement this idea, the architecture is built upon three primary mechanical components:
+
+  <ul className="list-disc pl-6 my-4 space-y-4" >
+    <li>
+      - **Direct Vision-to-DiT Integration:** Instead of relying on a parameter-heavy video diffusion backbone to learn environmental physics from scratch, ZULU directly feeds spatial features from a pre-trained Vision Transformer into a Diffusion Transformer (DiT) backbone.
+    </li>
+    <li>
+      - **Block-Causal Attention Masking:** To process the multi-modal inputs, I implemented a block-causal attention mechanism that dictates a strict spatiotemporal routing. Visual (DINOv2) tokens remain clean; the first frame serves as a ground-truth anchor attending only to itself, while subsequent frames attend to the first frame and recent frame blocks. Noisy action tokens attend to the visual context, their own action block, and the corresponding state block, enabling the visual representations to guide action denoising. And all tokens uniformly process language instructions via cross-attention. This ensures a unidirectional flow of information (vision to action) preventing future leakage.
+    </li>
+    <li>
+      - **Flow-Matching Objective:** Action generation and physical dynamics modeling are formulated through a flow-matching objective rather than standard regression, allowing the DiT to smoothly predict continuous action trajectories.
+    </li>
+  </ul>
+</div>
+
+<div className="my-8" >
+<img
+  src="/zulu_overview.svg"
+  alt="ZULU architecture overview"
+  className="w-full h-auto mb-2"
+/>
+*Fig. 1. Overview of the ZULU architecture. Multi-modal inputs—including visual patches, proprioceptive states, and language instructions—are projected into a unified sequence and processed via block-causal attention layers. During training, the model optimizes a flow-matching objective to denoise continuous action trajectories, enabling it to iteratively generate motor commands from pure Gaussian noise during inference.*
+</div>
+
+<div className="mt-4" >
+### ***D. Implementation and Scope***
+
+To investigate the viability of this architectural concept, I implemented the ZULU framework and conducted initial training runs. The complete codebase, including the model architecture, attention mechanisms, and the training pipeline, is publicly available at [github](https://github.com/sam-0777/zulu). The remainder of this paper details the specifics of this work. Section 2 breaks down the core ZULU architecture, focusing on token routing and flow-matching formulation. Section 3 outlines the implementation details and training setup. Finally, Section 4 discusses the current state of the model, the challenges encountered during training, and potential directions for future optimization and scaling.
+</div>

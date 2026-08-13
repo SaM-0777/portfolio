@@ -1,0 +1,251 @@
+## II. ZULU Architecture
+
+<div className="mt-2" >
+### ***A. Input Tokenization and Feature extraction***
+
+To process heterogeneous multi-modal inputs within a single Diffusion Transformer backbone, ZULU projects visual frames, physical states, continuous actions, and natural language instructions into a unified continuous embedding space.
+
+<div className="mt-4" >
+### ***1) Visual Feature Extraction***
+
+Visual observations are processed using a pre-trained Vision Transformer DINOv2. For each frame in the input sequence, patch tokens are extracted by taking the final hidden states of the vision backbone while discarding the standard CLS tokens.
+
+  <ul className="w-full list-disc pl-6 my-4 space-y-4" >
+    <li>
+      - **Patch Extraction:** The raw spatial frames are converted into a grid of dense patch embeddings that capture localized spatial features, object boundaries, and fine-grained geometric alignments.
+    </li>
+    <li>
+      - **Layer Normalization and Projection:** The extracted patch features are normalized via a LayerNorm layer and linearly projected to match the internal hidden dimension $d$ of the transformer backbone:
+
+      $$
+      \mathbf{H}_{vis}
+      =
+      \mathbf{W}_{proj} \cdot
+      \text{LayerNorm}(\mathbf{F}_{patch})
+      +
+      \mathbf{b}_{proj}
+      $$
+    </li>
+    <li>
+      - **Clean Context:** Crucially, unlike image generation diffusion models, visual patch tokens in ZULU remain un-noised throughout the model. They serve as deterministic, clean context tokens with fixed timestep embeddings set to zero.
+    </li>
+  </ul>
+</div>
+
+<div className="mt-4" >
+### ***2) State and Action Embedding***
+
+Physical state observations and continuous action trajectories are tokenized through specialized embodiment-aware mapping networks:
+
+
+  <ul className="w-full list-disc pl-6 my-4 space-y-4" >
+    <li>
+      - **Proprioceptive State Encoding:** Robot joint states and proprioceptive vectors $\mathbf{s}$ are embedded using a category-specific Multi-Layer Perceptron ($\text{MLP}_{state}$). This maps varying state representations into the shared embedding dimension $d$:
+
+      $$
+      \mathbf{E}_{state} 
+      = 
+      \text{MLP}_{state}(\mathbf{s}, \text{id}_{emb})
+      $$
+    </li>
+    <li>
+      - **Continuous Action Encoding:** Action trajectories $\mathbf{a}$ are processed through a multi-embodiment action encoder. To inform the model of the noise level during the flow-matching process, the flow timestep $t_{action}$ is mapped using a sinusoidal positional encoding $\text{PE}(t_{action})$ and combined with the action representation via embodiment-specific linear transformations and non-linear activations:
+
+      $$
+      \mathbf{E}_{action} 
+      = 
+      \text{MLP}_{action}(\mathbf{a}, \text{PE}(t_{action}), \text{id}_{emb})
+      $$
+    </li>
+    <li>
+      - **Training vs. Inference Disparity:** 
+      <ul className="my-4 space-y-4 pl-6 list-['-']" >
+        <li>
+          **During Training:** The model receives ground-truth action trajectories perturbed with Gaussian noise according to sampled flow-matching timesteps $t_{action}$. The resulting noisy action embeddings and state embeddings are concatenated to form an action-state register appended to the visual sequence.
+        </li>
+        <li>
+          **During Inference:** Ground-truth action inputs are unavailable. The action sequence is initialized entirely from standard Gaussian noise $\mathcal{N}(\mathbf{0}, \mathbf{I})$. The model iteratively denoises these noisy action tokens over multiple sampling steps using predicted vector fields, while the state tokens remain static physical conditioning context.
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+
+<div className="mt-4" >
+### ***3) Language Conditioning:*** High-level textual instructions are processed through a frozen, pre-trained T5 text encoder:
+
+<ul className="w-full list-disc pl-6 my-4 space-y-4" >
+  <li>
+    Input text strings are tokenized and padded or truncated to a fixed maximum sequence length.
+  </li>
+  <li>
+    The text tokens are passed through the T5 encoder model to produce dense contextual embeddings.
+  </li>
+  <li>
+    To ensure no attention leakage from padding, attention masks zero out unused sequence positions.
+  </li>
+  <li>
+    The clean textual embeddings are linearly projected into the transformer hidden dimension $d$:
+    $$
+    \mathbf{C}_{text} 
+    = 
+    \text{MLP}_{text}(\text{T5Encoder}(\mathbf{text}))
+    $$
+  </li>
+</ul>
+
+These language context embeddings $\mathbf{C}_{text}$ are subsequently fed into the cross-attention blocks of the Diffusion Transformer to steer action generation according to the task instruction.
+</div>
+
+<div className="my-8" >
+<img
+  src="/zulu_attention.svg"
+  alt="ZULU architecture overview"
+  className="w-full h-auto mb-2"
+/>
+*Fig. 2. Block-causal self-attention mask. This matrix illustrates the block-wise routing logic dictating how tokens attend to one another within the multi-modal sequence. The layout is partitioned into a ground-truth anchor frame ($F_0$), followed by temporally corresponding vision blocks ($V_0 \dots V_3$), action blocks ($A_0 \dots A_3$), and state blocks ($S_0 \dots S_3$). This masking strategy ensures that information flows causally from the clean visual context to guide action denoising without leaking future states.*
+</div>
+</div>
+
+
+<div className="mt-2" >
+### ***B. Spatiotemporal Token Routing (The Attention Mask)***
+
+The core architecture of ZULU directly adapts the routing strategy introduced by DreamZero. Rather than utilizing computationally expensive, fully bidirectional attention across long sequences, ZULU implements highly structured, block-causal attention mechanism. This design rigidly controls the flow of information between visual inputs, proprioceptive states, and action trajectories, ensuring that the model learns physical dynamics without leaking future information during action prediction.
+
+<div className="mt-4" >
+### ***1) Sequence Layout and Partitioning:***
+
+Before entering the attention layers, the unified sequence of tokens is logically partitioned into discrete spatiotemporal blocks. The layout consists of four distinct token groups:
+
+<ul className="w-full list-disc pl-6 my-4 space-y-4" >
+  <li>
+    **Initial Anchor Frame ($F_0$):** The visual tokens comprising the very first frame of the input sequence.
+  </li>
+  
+  <li>
+    **Visual Blocks ($V_0 \dots V_n$):** The subsequent visual tokens are grouped into discrete blocks, with each block containing the patches for a parameterized number of consecutive frames.
+  </li>
+
+  <li>
+    **Action Blocks ($A_0 \dots A_n$):** The continuous action tokens are grouped into blocks that temporally correspond to the visual blocks.
+  </li>
+
+  <li>
+    **State Blocks ($S_0 \dots S_n$):** The proprioceptive state tokens are similarly grouped to correspond with the temporal blocks of the actions and visuals.
+  </li>
+</ul>
+</div>
+
+<div className="mt-4" >
+### ***2) Block-Causal Self-Attention Rules:***
+
+To process these interleaved modalities, the CausalAttentionBlock defines a strict masking matrix governing which tokens act as queries and which serve as valid keys and values. The routing dictates that information flows predominantly from the clean visual context to the noisy action tokens.
+Based on the implemented mask, the self-attention routing strictly adheres to the following rules:
+
+<ul className="w-full list-disc pl-6 my-4 space-y-4" >
+  <li>
+    **First Frame Anchor Isolation:** Queries originating from the initial frame $F_0$ attend exclusively to keys within $F_0$. This anchor establishes a static, uncorrupted ground-truth visual context for the rest of the sequence.
+  </li>
+
+  <li>
+    **Visual Context Routing:**
+
+    <ul className="my-4 space-y-4 pl-6 list-['-']" >
+      <li>
+        Queries originating from a visual block $V_i$ can attend to the anchor $F_0$, all historical and current visual blocks up to $V_i$, their corresponding temporal action block $A_i$, and their corresponding state block $S_i$.
+      </li>
+      <li>
+        Visual queries are strictly prohibited from attending to future visual blocks (e.g., $V_{i+1}$) or any future action and state blocks, preserving causal temporal dynamics.
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    **Action Denoising Context:**
+
+    <ul className="my-4 space-y-4 pl-6 list-['-']" >
+      <li>
+        Action blocks consist of the noisy tokens that the flow-matching objective seeks to denoise. Queries from an action block $A_i$ attend to the anchor $F_0$, the full visual history up to the corresponding visual block $V_i$, their own current action block $A_i$, and the corresponding state block $S_i$.
+      </li>
+      <li>
+        Action tokens are masked from attending to past action blocks (e.g., $A_{i-1}$) or any future information. This ensures the denoising of an action chunk is guided exclusively by the visual and physical state context of its specific temporal window.
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    **State Token Isolation:** Proprioceptive state tokens represent pure physical conditioning. A query from state block $S_i$ is completely isolated, attending exclusively to its own keys within $S_i$.
+  </li>
+</ul>
+
+</div>
+
+
+<div className="mt-4" >
+### ***3) Language Integration via Cross-Attention:***
+
+Following the block-causal self-attention, the sequence undergoes a cross-attention phase to integrate the language instructions.
+
+<ul className="w-full list-disc pl-6 my-4 space-y-4" >
+  <li>
+    **Bidirectional Semantic Conditioning:** Unlike the strict causal masking of the self-attention mechanism, the cross-attention block applies a fully non-causal mask.
+  </li>
+
+  <li>
+    **Routing Logic:** The entire updated multi-modal sequence (visual, action, and state tokens) acts as the queries, while the dense embeddings extracted from the text encoder serve as the keys and values. This allows every token in the spatiotemporal sequence to freely attend to the entire natural language instruction, ensuring that visual tracking and action generation are uniformly conditioned on the semantic goal.
+  </li>
+</ul>
+</div>
+
+<div className="mt-4" >
+### ***4) Timestep Modulation (AdaLN):***
+
+Throughout both the self-attention and cross-attention operations, the flow-matching timestep is injected into the network via Adaptive Layer Normalization (AdaLN). The timestep embedding is transformed into six distinct modulation chunks ($e_{chunk}$). These chunks apply scale and shift transformations to the sequence immediately before and after the attention and feed-forward layers, modulating the network's behavior based on the current noise level of the action tokens.
+</div>
+</div>
+
+<div className="mt-2" >
+### ***C. Flow-Matching Action Generation***
+
+Rather than treating action generation as a discrete classification or standard regression task, ZULU formulates continuous trajectory prediction through a flow-matching objective. Within this framework, visual and state tokens serve purely as uncorrupted conditioning context, while the continuous action tokens are the exclusive variables subjected to the forward noising and reverse denoising process.
+
+<div className="mt-4" >
+### ***1) The Forward Process:***
+
+During the training phase, the model is provided with ground-truth continuous action trajectories, denoted as $\mathbf{a}$. To construct the flow-matching objective, these clean actions are perturbed by sampling a random noise tensor $\epsilon \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ of the exact same shape.
+
+A specific timestep $t$ is sampled from the scheduler, which corresponds to a distinct noise level $\sigma_t$. The forward process connects the empirical data distribution (the clean actions) to a standard Gaussian noise distribution via an optimal transport interpolation path. The noisy action tokens $x_t$ at a given timestep are generated using the following linear interpolation: 
+$$
+x_t = (1 - \sigma_t) \mathbf{a} + \sigma_t \epsilon 
+$$
+Once constructed, these noisy action tokens $x_t$ are encoded and injected into the Diffusion Transformer (DiT) alongside the clean visual and state context.
+</div>
+
+<div className="mt-4" >
+### ***2) The Flow-Matching Objective:***
+
+The core objective of the DiT backbone is to predict the vector field that drives the transformation from the prior noise distribution back toward the clean data distribution. In this rectified flow formulation, the true vector field (the training target) is explicitly defined as the difference between the sampled noise and the original clean action trajectory:
+
+$$
+v_t = \epsilon - \mathbf{a}
+$$
+
+The DiT processes the multi-modal sequence and outputs a predicted vector field $\hat{v}_t$ for the action tokens. This prediction is dynamically conditioned on the clean visual patches, the physical state tokens, the embedded language instructions, and the encoded flow timestep $t$.
+</div>
+
+<div className="mt-4" >
+### ***3) Loss Computation and Masking***
+
+The optimization metric for action generation is calculated using a Mean Squared Error (MSE) loss between the network's predicted vector field $\hat{v}_t$ and the ground-truth target $v_t$. To balance learning across various stages of the noise schedule, this per-sample MSE loss is multiplied by a timestep-dependent weighting array provided by the flow scheduler.
+</div>
+
+<div className="mt-4" >
+### ***4) Inference and Vector Field Integration***
+
+During inference, ground-truth action data is naturally unavailable. Action generation begins by initializing the entire action sequence horizon as pure Gaussian noise.
+
+To integrate the network's predictions, ZULU relies on a specialized multi-step solver, Flow UniPC (Unified Predictor-Corrector) Multistep Scheduler. Prior to sampling, the scheduler calculates a discrete sequence of inference timesteps by interpolating noise levels (sigmas) and applying a continuous shifting transformation—dynamically warping the schedule to allocate integration steps optimally across the flow trajectory. At each discrete step, the DiT predicts the vector field conditioned on the current noisy action states and the streaming, clean visual context. Rather than a simple linear integration, the solver utilizes a multi-order predictor-corrector mechanism. It maintains an internal buffer of historical vector field predictions and employs a warmup phase, gradually increasing the solver's integration order as more historical data becomes available. At each timestep, the scheduler first executes a corrector phase—refining the current trajectory sample using the newly predicted vector field and the previous sample—before executing a predictor phase to propagate the trajectory to the next noise level. This iteratively pulls the noise towards the true action distribution to form a smooth, continuous physical trajectory.
+</div>
+</div>
