@@ -112,9 +112,28 @@ Where $\mathcal{L}_{action}$ is the flow-matching Mean Squared Error computed ov
 
 As this technical report presents the first exploratory iteration of the ZULU framework, the primary goal was to validate the structural token-routing and flow-matching mechanics. This section details the current physical footprint of the architecture, the engineering hurdles encountered during the initial training runs, and the roadmap for future scaling.
 
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8" >
+<div>
+<img
+  src="/Figure_apf-5000_train.png"
+  alt="ZULU action trajectory prediction"
+  className="w-full h-auto mb-2"
+/>
+*Fig. 3.1. ZULU action trajectory predictions on the training dataset. True Model MSE: 0.00348; True Model L1: 0.04326.*
+</div>
+<div>
+<img
+  src="/Figure_apf-5000_test.png"
+  alt="ZULU test action trajectory prediction"
+  className="w-full h-auto mb-2"
+/>
+*Fig. 3.2. ZULU action trajectory predictions on the test dataset. True Model MSE: 0.00639; True Model L1: 0.05655.*
+</div>
+</div>
+
 <div className="mt-4" >
 
-### ***1) Model Scale and Current Status***
+### ***1) Model Scale***
 
 The first iteration of the ZULU architecture is deliberately constrained to serve as a lightweight proof-of-concept. The Diffusion Transformer (DiT) backbone is constructed with the following structural dimensions:
 
