@@ -1,5 +1,14 @@
 export const blogData = [
   {
+    id: 5,
+    date: "Aug 10, 2026",
+    title: "ZULU: A Flow-Matching Action Model Architecture with DINOv2 Dense Representations",
+    excerpt:
+      "Currently, many vision-language-action (VLA) models rely on heavy vision-language backbones to interpret environmental observations. While pre-trained Vision Transformers provide robust out-of-the-box...",
+    link: "/blog/zulu",
+    image: "/zulu_overview.png",
+  },
+  {
     id: 4,
     date: "June 3, 2026",
     title: "Temporal Memory",
