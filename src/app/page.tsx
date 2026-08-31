@@ -105,7 +105,7 @@ export default function Home() {
 
           <p className="text-lg text-ink-black/70 font-medium mt-1">
             B.Tech in Computer Science, Indian Institute of Information
-            Technology (2024)
+            Technology
           </p>
           <div className="mt-5">
             <h4 className="text-sm font-semibold uppercase tracking-wider text-ink-black/50 mb-2">
