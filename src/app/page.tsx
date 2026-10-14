@@ -206,6 +206,37 @@ export default function Home() {
           <div className="flex flex-col md:flex-row gap-4 md:gap-12">
             <div className="md:w-1/4 shrink-0 pt-1">
               <span className="text-sm font-semibold uppercase tracking-widest text-ink-black/50">
+                October 2026
+              </span>
+            </div>
+
+            <div className="md:w-3/4 space-y-4">
+              <h4 className="text-2xl font-semibold text-oxblood font-eb-garamond">
+                Predictive Coding for Supervise and Reinforcement Learning
+              </h4>
+
+              <p className="text-ink-black/80 leading-relaxed text-base">
+                This experiment implements predictive coding from scratch in PyTorch across supervised learning and reinforcement learning. For MNIST, a convolutional model performs iterative activity inference and updates parameters using local prediction errors. For Catcher, a PPO agent combines actor–critic task signals with predictive-coding inference and local parameter updates.
+              </p>
+
+              <div className="inline-flex items-center gap-4">
+                <Link
+                  href={"https://github.com/SaM-0777/predictive_coding"}
+                  target="_blank"
+                  className="text-base font-medium hover:underline inline-flex items-center gap-0.5"
+                >
+                  <span>Source Code</span>
+                  <span>
+                    <ArrowUpRight className="size-4" />
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4 md:gap-12">
+            <div className="md:w-1/4 shrink-0 pt-1">
+              <span className="text-sm font-semibold uppercase tracking-widest text-ink-black/50">
                 July 2026
               </span>
             </div>
