@@ -1,4 +1,5 @@
-export function tokenLabel(token: DemoToken) {
+export function tokenLabel(token: DemoToken | undefined) {
+  if (!token) return ""
   return token.token
     .replace(/Ġ|▁/g, "·")
     .replace(/\n/g, "↵")

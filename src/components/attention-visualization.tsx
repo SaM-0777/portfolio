@@ -1,20 +1,26 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import { tokenLabel } from "@/lib/lexical";
+import { attentionMatrix, Tokens } from "@/lib/attention";
 
-export interface AttentionVisualizationProps {
-  activeToken: DemoToken;
-  attentionTokens: DemoToken[];
-  selectedToken: number;
-  setSelectedToken: (token: number) => void;
-  matrix: number[][];
-}
+export interface AttentionVisualizationProps {}
 
-export default function AttentionVisualization({
-  activeToken,
-  attentionTokens,
-  selectedToken,
-  setSelectedToken,
-  matrix,
-}: AttentionVisualizationProps) {
+export default function AttentionVisualization({}: AttentionVisualizationProps) {
+  const [selectedToken, setSelectedToken] = useState(0);
+  const attentionTokens = useMemo(
+    () => Tokens.filter((token) => token.kind !== "space").slice(0, 16),
+    [Tokens],
+  );
+  const matrix = useMemo(
+    () => attentionMatrix(attentionTokens),
+    [attentionTokens],
+  );
+  const activeToken =
+    attentionTokens[
+      Math.min(selectedToken, Math.max(0, attentionTokens.length - 1))
+    ] ?? attentionTokens[0];
+
   return (
     <div className="mt-9 overflow-hidden rounded-[26px] border border-[#d9d7ce] bg-[#262d2a] text-[#f4f2e9]">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#414a45] px-5 py-4 sm:px-7">

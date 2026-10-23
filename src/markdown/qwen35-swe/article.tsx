@@ -17,36 +17,15 @@ import { REFERENCES } from "@/constant/references";
 import AttentionVisualization from "@/components/attention-visualization";
 import ReferenceLink from "@/components/reference-link";
 import BenchmarkCard from "@/components/benchmark-card";
+import Tokenizer from "@/components/tokenizer";
 
 export default function Article() {
   const [model, setModel] = useState<ModelKey>("swe");
-  const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
-  const [selectedToken, setSelectedToken] = useState(0);
-  const initialTokenization = useRef(false);
-  const [tokens, setTokens] = useState<DemoToken[]>([]);
+
   const [lexicalComparisons, setLexicalComparisons] = useState<
     Record<LanguageKey, DemoToken[]>
   >({} as Record<LanguageKey, DemoToken[]>);
-  const attentionTokens = useMemo(
-    () => tokens.filter((token) => token.kind !== "space").slice(0, 16),
-    [tokens],
-  );
-  const matrix = useMemo(
-    () => attentionMatrix(attentionTokens),
-    [attentionTokens],
-  );
-  const activeToken =
-    attentionTokens[
-      Math.min(selectedToken, Math.max(0, attentionTokens.length - 1))
-    ] ?? attentionTokens[0];
-  //const activeTokenIndex = Math.min(
-  //  selectedToken,
-  //  Math.max(0, attentionTokens.length - 1),
-  //);
-  //const activeEmbedding = embeddingFor(activeToken, activeTokenIndex);
-  //const q = linearWithoutBias(activeEmbedding, PROJECTION_WEIGHTS.q);
-  //const k = linearWithoutBias(activeEmbedding, PROJECTION_WEIGHTS.k);
-  //const v = linearWithoutBias(activeEmbedding, PROJECTION_WEIGHTS.v);
+
   const info = MODELS[model];
   const {
     state: tokenizerState,
@@ -54,35 +33,6 @@ export default function Article() {
     tokenize,
     reload: reloadTokenizer,
   } = useHuggingFaceTokenizer(info.tokenizerId);
-
-  const handleTokenize = useCallback(() => {
-    if (!tokenizerReady) return;
-
-    setTokens(tokenize(prompt));
-    setLexicalComparisons(
-      LEXICAL_EXAMPLES.reduce(
-        (comparison, example) => {
-          comparison[example.language] = tokenize(example.code);
-          return comparison;
-        },
-        {} as Record<LanguageKey, DemoToken[]>,
-      ),
-    );
-    setSelectedToken(0);
-  }, [prompt, tokenize, tokenizerReady]);
-
-  useEffect(() => {
-    if (!tokenizerReady || initialTokenization.current) {
-      return;
-    }
-
-    initialTokenization.current = true;
-    handleTokenize();
-  }, [handleTokenize, tokenizerReady]);
-
-  const lexicalCount = tokens.filter(
-    (token) => token.kind === "word" || token.kind === "number",
-  ).length;
 
   return (
     <article className="min-w-0">
@@ -94,8 +44,9 @@ export default function Article() {
           for code.
         </h1>
         <p className="mt-8 max-w-2xl text-[17px] leading-8 text-[#626962] sm:text-[19px]">
-          Can a tokenizer that respects the lexical boundaries of programming-languages
-          help a language model generalize syntax, semantics, and structure better?
+          Can a tokenizer that respects the lexical boundaries of
+          programming-languages help a language model generalize syntax,
+          semantics, and structure better?
         </p>
 
         <div className="relative flex h-full flex-col justify-between space-y-8 mt-14">
@@ -141,199 +92,16 @@ export default function Article() {
           </h2>
         </div>
 
-        <div className="mt-9 overflow-hidden rounded-[26px] border border-[#d9d7ce] bg-[#]">
-          <div className="relative border-b border-[#d9d7ce] p-5 sm:p-7">
-            <label
-              htmlFor="prompt"
-              className="mb-3 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-[#8c9088]"
-            >
-              <span>Prompt / code fragment</span>
-              <span className="font-mono text-[#9a9b91]">
-                {prompt.length} / 180 chars
-              </span>
-            </label>
-            <textarea
-              id="prompt"
-              value={prompt}
-              maxLength={180}
-              onChange={(event) => {
-                setPrompt(event.target.value);
-                setSelectedToken(0);
-                setTokens([]);
-              }}
-              className="min-h-30 w-full resize-y bg-transparent font-mono text-[13px] leading-7 text-ink-black outline-none"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-2 border-b border-[#d9d7ce] px-5 py-4 sm:px-7">
-            <span className="mr-2 text-[10px] uppercase tracking-[0.16em] text-[#92958c]">
-              checkpoint
-            </span>
-            {(Object.keys(MODELS) as ModelKey[]).map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => {
-                  setModel(key);
-                  setSelectedToken(0);
-                  setTokens([]);
-                  setLexicalComparisons(
-                    {} as Record<LanguageKey, DemoToken[]>,
-                  );
-                }}
-                className={`rounded-full border px-3 py-2 text-[11px] transition duration-200 ${model === key ? "border-deep-forest bg-deep-forest text-white" : "border-[#d3d0c7] bg-white text-deep-forest hover:border-[#9b9e95]"}`}
-              >
-                {MODELS[key].shortName}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={handleTokenize}
-              disabled={!tokenizerReady}
-              aria-busy={tokenizerState.status === "loading"}
-              className="ml-auto rounded-full border border-oxblood bg-oxblood px-4 py-2 text-[11px] text-white transition duration-200 hover:bg-[#8f3d27] disabled:cursor-wait disabled:opacity-45"
-            >
-              {tokenizerState.status === "loading"
-                ? "Loading tokenizer…"
-                : "Tokenize"}
-            </button>
-          </div>
-          <div className="p-5 sm:p-7">
-            <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="font-serif text-xl text-[#333a35]">{info.name}</p>
-                <p className="mt-1 font-mono text-[10px] text-[#9a9b91]">
-                  {info.source}
-                </p>
-              </div>
-              <div className="max-w-xs text-right text-[12px] leading-5 text-[#858a82]">
-                {info.description}
-              </div>
-            </div>
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#d9d7ce] bg-[#f7f6f2] px-4 py-3 text-[11px] text-[#777d75]">
-              {tokenizerState.status === "loading" && (
-                <div
-                  className="flex min-w-0 items-center gap-3"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-oxblood" />
-                  <span>Fetching tokenizer from HuggingFace</span>
-                  <span className="font-mono text-oxblood">
-                    {tokenizerState.progress}%
-                  </span>
-                  {tokenizerState.file && (
-                    <span className="max-w-[16rem] truncate font-mono text-[10px] text-[#9a9b91]">
-                      {tokenizerState.file}
-                    </span>
-                  )}
-                </div>
-              )}
-              {tokenizerState.status === "ready" && (
-                <div
-                  className="flex items-center gap-3"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <span className="h-2 w-2 rounded-full bg-deep-forest" />
-                  <span>Tokenizer loaded from HuggingFace</span>
-                </div>
-              )}
-              {tokenizerState.status === "error" && (
-                <div
-                  className="flex min-w-0 flex-1 items-center justify-between gap-3"
-                  role="alert"
-                >
-                  <span className="truncate text-oxblood">
-                    {tokenizerState.message ??
-                      "Tokenizer fetch needs another attempt."}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={reloadTokenizer}
-                    className="shrink-0 rounded-full border border-oxblood px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-oxblood transition hover:bg-[#fff5ed]"
-                  >
-                    Retry fetch
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {tokens.map((token, index) => (
-                <TokenPill
-                  key={`${token.id}-${index}`}
-                  token={token}
-                  selected={index === selectedToken}
-                  onClick={() =>
-                    setSelectedToken(
-                      Math.min(index, attentionTokens.length - 1),
-                    )
-                  }
-                />
-              ))}
-            </div>
-            {tokenizerState.status === "ready" && tokens.length === 0 && (
-              <p className="mt-4 text-[12px] leading-5 text-[#858a82]">
-                Edit the prompt, then press <span className="font-medium text-[#a2492e]">Tokenize</span> to update the token sequence.
-              </p>
-            )}
-            {tokenizerState.status === "ready" && tokens.length > 0 && (
-              <div className="mt-6 rounded-2xl border border-[#d9d7ce] bg-[#f7f6f2] p-4">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <p className="text-[10px] uppercase tracking-[0.16em] text-[#92958c]">
-                    token id → string
-                  </p>
-                  <p className="font-mono text-[10px] text-[#b0afa5]">
-                    {tokens.length} entries
-                  </p>
-                </div>
-                <div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto">
-                  {tokens.map((token, index) => (
-                    <button
-                      key={`decoded-${token.id}-${index}`}
-                      type="button"
-                      onClick={() =>
-                        setSelectedToken(
-                          Math.min(index, attentionTokens.length - 1),
-                        )
-                      }
-                      className={`rounded-lg border px-2.5 py-2 text-left font-mono text-[10px] transition ${index === selectedToken ? "border-[#cf6b4b] bg-[#fff5ed] text-[#a2492e]" : "border-transparent bg-[#eeece5] text-[#6d746c] hover:border-[#c8c5bb]"}`}
-                    >
-                      <span className="text-[#9a9b91]">{token.id}</span>
-                      <span className="mx-1 text-[#c0bdb2]">→</span>
-                      <span>{token.decoded || "∅"}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="grid gap-px border-t border-[#d9d7ce] sm:grid-cols-3">
-            <div className="p-5 border-r border-[#d9d7ce]">
-              <p className="text-[10px] uppercase tracking-[0.16em] text-[#9a9b91]">
-                token count
-              </p>
-              <p className="mt-3 font-serif text-3xl text-oxblood">
-                {tokens.length}
-              </p>
-            </div>
-            <div className="p-5 border-r border-[#d9d7ce]">
-              <p className="text-[10px] uppercase tracking-[0.16em] text-[#9a9b91]">
-                lexical units
-              </p>
-              <p className="mt-3 font-serif text-3xl text-oxblood">
-                {lexicalCount}
-              </p>
-            </div>
-            <div className="p-5">
-              <p className="text-[10px] uppercase tracking-[0.16em] text-[#9a9b91]">
-                selected id
-              </p>
-              <p className="mt-3 font-mono text-2xl text-oxblood">
-                {tokens[selectedToken]?.id ?? "—"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <Tokenizer
+          model={model}
+          setModel={setModel}
+          info={info}
+          reloadTokenizer={reloadTokenizer}
+          setLexicalComparisons={setLexicalComparisons}
+          tokenize={tokenize}
+          tokenizerReady={tokenizerReady}
+          tokenizerState={tokenizerState}
+        />
         <p className="mt-4 text-[11px] leading-5 text-[#92958c]">
           Tokenizer assets are loaded through{" "}
           <code className="rounded bg-[#eceae3] px-1 font-mono">
@@ -351,11 +119,11 @@ export default function Article() {
         <div className="mt-8 grid gap-7 text-[15px] leading-8 text-[#59615a] sm:grid-cols-2">
           <p>
             A lexical token is a smallest meaningful unit emitted by a language
-            lexer. Such as an identifier, keyword, literal, operator, or delimiter. The
-            parser then combines these units into an abstract syntax tree. A
-            tokenizer designed around those same atoms gives the model a
-            representation whose transitions already carry hints about the next
-            legal move.
+            lexer. Such as an identifier, keyword, literal, operator, or
+            delimiter. The parser then combines these units into an abstract
+            syntax tree. A tokenizer designed around those same atoms gives the
+            model a representation whose transitions already carry hints about
+            the next legal move.
           </p>
           <p>
             Subword algorithms such as BPE begin with a compact base vocabulary
@@ -424,7 +192,8 @@ export default function Article() {
                           : "loading"}
                       </span>
                     </div>
-                    {tokenizerState.status === "ready" && tokenizerTokens.length > 0 ? (
+                    {tokenizerState.status === "ready" &&
+                    tokenizerTokens.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {tokenizerTokens.map((token, index) => (
                           <span
@@ -469,10 +238,10 @@ export default function Article() {
           Causal self-attention builds the representation at each position from
           that token and the available prefix. Each position is projected into a
           query, key, and value; query–key dot products produce scores, the
-          causal mask assigns -Infinity score to future positions
-          before softmax, and the resulting weights mix the value vectors into
-          the position’s output. This lets an autoregressive model predict the
-          next token from the sequence it has read so far. <sup>[04, 05]</sup>
+          causal mask assigns -Infinity score to future positions before
+          softmax, and the resulting weights mix the value vectors into the
+          position’s output. This lets an autoregressive model predict the next
+          token from the sequence it has read so far. <sup>[04, 05]</sup>
           <br />
           <br />
           Token boundaries determine the units that participate in these
@@ -506,11 +275,12 @@ export default function Article() {
         </div>
 
         <AttentionVisualization
-          activeToken={activeToken}
-          attentionTokens={attentionTokens}
-          matrix={matrix}
-          selectedToken={selectedToken}
-          setSelectedToken={setSelectedToken}
+
+        //activeToken={activeToken}
+        //attentionTokens={attentionTokens}
+        //matrix={matrix}
+        //selectedToken={selectedToken}
+        //setSelectedToken={setSelectedToken}
         />
       </section>
 
@@ -540,20 +310,20 @@ export default function Article() {
             >
               Nemotron-SFT-SWE-v3.5
             </Link>
-            , a SWE instruction-tuning dataset
-            containing agentic trajectories with code, text, structured data,
-            patches, and configuration artifacts. <sup>[06]</sup>
+            , a SWE instruction-tuning dataset containing agentic trajectories
+            with code, text, structured data, patches, and configuration
+            artifacts. <sup>[06]</sup>
             <br />
             The Standard variant keeps the base tokenizer. The Extended-vocab
             variant adds 278 new lexical code tokens across
           </p>
           <p>
             various programming languages which includes the keywords,
-            operators, delimiters, but does not consider the identifier
-            such as variable names, and resizes the model vocabulary, exposes the
-            added embedding rows as trainable token indices while applying the
-            same LoRA supervised-fine-tuning recipe. The recipe uses the
-            dataset’s train split and creates a seeded 90/10 train-test split.{" "}
+            operators, delimiters, but does not consider the identifier such as
+            variable names, and resizes the model vocabulary, exposes the added
+            embedding rows as trainable token indices while applying the same
+            LoRA supervised-fine-tuning recipe. The recipe uses the dataset’s
+            train split and creates a seeded 90/10 train-test split.{" "}
             <sup>[05]</sup>
           </p>
         </div>
@@ -613,11 +383,11 @@ export default function Article() {
                 larger extra-test suites that probe behavior across more inputs;
                 EvalPlus describes these extensions as roughly 80× the original
                 HumanEval tests and 35× the original MBPP tests. <sup>[07]</sup>
-                <p>
+                <span>
                   For each tokenizer variant, the evaluation notebook uses the
                   corresponding model directory, generates one greedy completion
                   per task with
-                </p>
+                </span>
               </p>
             </div>
           </div>
@@ -627,23 +397,23 @@ export default function Article() {
 
         <div className="mt-8 grid gap-7 text-[15px] leading-8 text-[#59615a] sm:grid-cols-2">
           <p>
-            <p>
+            <span>
               vLLM, and runs EvalPlus against the base and extended tests using
               the forced base prompt. The reported metric is <em>pass@1</em>:
               the percentage of tasks whose first generated solution passes the
               selected executable tests. <sup>[07]</sup>
-            </p>
-            <p>
+            </span>
+            <span>
               The Extended-vocab variant leads on HumanEval by 6.7 percentage
               points and on HumanEval+ by 8.0 points. Its HumanEval score falls
               by 5.4 points when the extra tests are added, compared with a
               6.7-point fall for standard, so the extended variant retains more
               of its base-test
-            </p>
+            </span>
           </p>
           <p>
-            <p>performance on this evaluation.</p>
-            <p>
+            <span>performance on this evaluation.</span>
+            <span>
               Standard leads MBPP by 0.7 points and MBPP+ by 0.8 points. Both
               variants experience a similar MBPP-to-MBPP+ reduction of roughly
               eleven points, showing the additional pressure created by broader
@@ -651,7 +421,7 @@ export default function Article() {
               benchmark-specific effect: lexical vocabulary expansion helps the
               HumanEval family, while the original performance remains slightly
               stronger on MBPP. <sup>[07]</sup>
-            </p>
+            </span>
           </p>
         </div>
       </section>
@@ -692,9 +462,9 @@ export default function Article() {
             <strong>Practical limitation.</strong> The extended tokenizer is
             most useful when the corpus and model are designed around the same
             lexical units. It may not be worth the additional tokenizer,
-            vocabulary, and deployment requirements for short or
-            mostly unstructured inputs, or when broad compatibility and compact
-            model artifacts are the primary goals. These conditions define the
+            vocabulary, and deployment requirements for short or mostly
+            unstructured inputs, or when broad compatibility and compact model
+            artifacts are the primary goals. These conditions define the
             situations that future comparisons should measure.
           </p>
         </div>
