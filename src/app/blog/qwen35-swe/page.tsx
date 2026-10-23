@@ -3,7 +3,7 @@ import Link from "next/link";
 import Article from "@/markdown/qwen35-swe/article";
 import { sectionLinks } from "@/constant/lexical";
 
-export const instant = false;
+//export const instant = false;
 
 export const metadata: Metadata = {
   title: {
