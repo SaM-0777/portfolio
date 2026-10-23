@@ -80,7 +80,7 @@ export default function Tokenizer({
             setSelectedToken(0);
             setTokens([]);
           }}
-          className="min-h-30 w-full resize-y bg-transparent font-mono text-[13px] leading-7 text-ink-black outline-none"
+          className="min-h-56 w-full resize-y bg-transparent font-mono text-[13px] leading-7 text-ink-black outline-none"
         />
       </div>
 
@@ -182,10 +182,7 @@ export default function Tokenizer({
               key={`${token.id}-${index}`}
               token={token}
               selected={index === selectedToken}
-              onClick={
-                () => {}
-                //setSelectedToken(Math.min(index, attentionTokens.length - 1))
-              }
+              onClick={() => setSelectedToken(index)}
             />
           ))}
         </div>
@@ -211,12 +208,7 @@ export default function Tokenizer({
                 <button
                   key={`decoded-${token.id}-${index}`}
                   type="button"
-                  onClick={() =>
-                    setSelectedToken(
-                      0,
-                      //Math.min(index, attentionTokens.length - 1),
-                    )
-                  }
+                  onClick={() => setSelectedToken(index)}
                   className={`rounded-lg border px-2.5 py-2 text-left font-mono text-[10px] transition ${index === selectedToken ? "border-[#cf6b4b] bg-[#fff5ed] text-[#a2492e]" : "border-transparent bg-[#eeece5] text-[#6d746c] hover:border-[#c8c5bb]"}`}
                 >
                   <span className="text-[#9a9b91]">{token.id}</span>

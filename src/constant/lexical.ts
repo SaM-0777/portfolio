@@ -37,7 +37,13 @@ export const MODELS: Record<ModelKey, ModelInfo> = {
   },
 };
 
-export const DEFAULT_PROMPT = `def weighted_mean(values: list[float]) -> float:\n    return sum(values) / len(values)`;
+export const DEFAULT_PROMPT = `
+def transform(value: int, exponent: int) -> int:
+    result = value
+    result **= exponent
+    result >>= 2
+    return result
+`;
 
 export const LEXICAL_KIND_STYLES: Record<LexicalKind, string> = {
   keyword: "border-[#d7b3a3] bg-[#f5e5dd] text-[#9b4f36]",
@@ -51,85 +57,132 @@ export const LEXICAL_KIND_STYLES: Record<LexicalKind, string> = {
 export const LEXICAL_EXAMPLES: LexicalExample[] = [
   {
     language: "Python",
-    code: "def weighted_mean(values: list[float]) -> float:\n    return sum(values) / len(values)",
+    code: `def transform(value: int, exponent: int) -> int:
+    result = value
+    result **= exponent
+    result >>= 2
+    return result`,
     tokens: [
       { text: "def", kind: "keyword" },
-      { text: "weighted_mean", kind: "identifier" },
+      { text: "transform", kind: "identifier" },
       { text: "(", kind: "delimiter" },
-      { text: "values", kind: "identifier" },
+      { text: "value", kind: "identifier" },
       { text: ":", kind: "delimiter" },
-      { text: "list", kind: "type" },
-      { text: "[", kind: "delimiter" },
-      { text: "float", kind: "type" },
-      { text: "]", kind: "delimiter" },
+      { text: "int", kind: "type" },
+      { text: ",", kind: "delimiter" },
+      { text: "exponent", kind: "identifier" },
+      { text: ":", kind: "delimiter" },
+      { text: "int", kind: "type" },
       { text: ")", kind: "delimiter" },
       { text: "->", kind: "operator" },
-      { text: "float", kind: "type" },
+      { text: "int", kind: "type" },
       { text: ":", kind: "delimiter" },
-      { text: "return", kind: "keyword" },
-      { text: "sum", kind: "identifier" },
-      { text: "(", kind: "delimiter" },
-      { text: "values", kind: "identifier" },
-      { text: ")", kind: "delimiter" },
-      { text: "/", kind: "operator" },
-      { text: "len", kind: "identifier" },
-      { text: "(", kind: "delimiter" },
-      { text: "values", kind: "identifier" },
-      { text: ")", kind: "delimiter" },
-    ],
-  },
-  {
-    language: "TypeScript",
-    code: "const sample: Record<string, number> = {\n  passAt1: 0.524,\n};",
-    tokens: [
-      { text: "const", kind: "keyword" },
-      { text: "sample", kind: "identifier" },
-      { text: ":", kind: "delimiter" },
-      { text: "Record", kind: "type" },
-      { text: "<", kind: "operator" },
-      { text: "string", kind: "type" },
-      { text: ",", kind: "delimiter" },
-      { text: "number", kind: "type" },
-      { text: ">", kind: "operator" },
+      { text: "result", kind: "identifier" },
       { text: "=", kind: "operator" },
-      { text: "{", kind: "delimiter" },
-      { text: "passAt1", kind: "identifier" },
-      { text: ":", kind: "delimiter" },
-      { text: "0.524", kind: "literal" },
-      { text: ",", kind: "delimiter" },
-      { text: "}", kind: "delimiter" },
-      { text: ";", kind: "delimiter" },
+      { text: "value", kind: "identifier" },
+      { text: "result", kind: "identifier" },
+      { text: "**=", kind: "operator" },
+      { text: "exponent", kind: "identifier" },
+      { text: "result", kind: "identifier" },
+      { text: ">>=", kind: "operator" },
+      { text: "2", kind: "literal" },
+      { text: "return", kind: "keyword" },
+      { text: "result", kind: "identifier" },
     ],
   },
   {
     language: "Rust",
-    code: "let mean = values.iter().sum::<f32>() / values.len() as f32;",
+    code: `fn count_bits(mut value: u32) -> u32 {
+    let mut count = 0;
+
+    while value != 0 {
+        count += value & 1;
+        value >>= 1;
+    }
+
+    count
+}`,
     tokens: [
+      { text: "fn", kind: "keyword" },
+      { text: "count_bits", kind: "identifier" },
+      { text: "(", kind: "delimiter" },
+      { text: "mut", kind: "keyword" },
+      { text: "value", kind: "identifier" },
+      { text: ":", kind: "delimiter" },
+      { text: "u32", kind: "type" },
+      { text: ")", kind: "delimiter" },
+      { text: "->", kind: "operator" },
+      { text: "u32", kind: "type" },
+      { text: "{", kind: "delimiter" },
       { text: "let", kind: "keyword" },
-      { text: "mean", kind: "identifier" },
+      { text: "mut", kind: "keyword" },
+      { text: "count", kind: "identifier" },
       { text: "=", kind: "operator" },
-      { text: "values", kind: "identifier" },
-      { text: ".", kind: "delimiter" },
-      { text: "iter", kind: "identifier" },
-      { text: "(", kind: "delimiter" },
-      { text: ")", kind: "delimiter" },
-      { text: ".", kind: "delimiter" },
-      { text: "sum", kind: "identifier" },
-      { text: "::", kind: "operator" },
-      { text: "<", kind: "operator" },
-      { text: "f32", kind: "type" },
-      { text: ">", kind: "operator" },
-      { text: "(", kind: "delimiter" },
-      { text: ")", kind: "delimiter" },
-      { text: "/", kind: "operator" },
-      { text: "values", kind: "identifier" },
-      { text: ".", kind: "delimiter" },
-      { text: "len", kind: "identifier" },
-      { text: "(", kind: "delimiter" },
-      { text: ")", kind: "delimiter" },
-      { text: "as", kind: "keyword" },
-      { text: "f32", kind: "type" },
+      { text: "0", kind: "literal" },
       { text: ";", kind: "delimiter" },
+      { text: "while", kind: "keyword" },
+      { text: "value", kind: "identifier" },
+      { text: "!=", kind: "operator" },
+      { text: "0", kind: "literal" },
+      { text: "{", kind: "delimiter" },
+      { text: "count", kind: "identifier" },
+      { text: "+=", kind: "operator" },
+      { text: "value", kind: "identifier" },
+      { text: "&", kind: "operator" },
+      { text: "1", kind: "literal" },
+      { text: ";", kind: "delimiter" },
+      { text: "value", kind: "identifier" },
+      { text: ">>=", kind: "operator" },
+      { text: "1", kind: "literal" },
+      { text: ";", kind: "delimiter" },
+      { text: "}", kind: "delimiter" },
+      { text: "count", kind: "identifier" },
+      { text: "}", kind: "delimiter" },
+    ],
+  },
+  {
+    language: "TypeScript",
+    code: `function normalize(value: number, fallback?: number): number {
+  let result = value;
+  result >>>= 1;
+  fallback ??= 10;
+  return result || fallback;
+}`,
+    tokens: [
+      { text: "function", kind: "keyword" },
+      { text: "normalize", kind: "identifier" },
+      { text: "(", kind: "delimiter" },
+      { text: "value", kind: "identifier" },
+      { text: ":", kind: "delimiter" },
+      { text: "number", kind: "type" },
+      { text: ",", kind: "delimiter" },
+      { text: "fallback", kind: "identifier" },
+      { text: "?", kind: "operator" },
+      { text: ":", kind: "delimiter" },
+      { text: "number", kind: "type" },
+      { text: ")", kind: "delimiter" },
+      { text: ":", kind: "delimiter" },
+      { text: "number", kind: "type" },
+      { text: "{", kind: "delimiter" },
+      { text: "let", kind: "keyword" },
+      { text: "result", kind: "identifier" },
+      { text: "=", kind: "operator" },
+      { text: "value", kind: "identifier" },
+      { text: ";", kind: "delimiter" },
+      { text: "result", kind: "identifier" },
+      { text: ">>>=", kind: "operator" },
+      { text: "1", kind: "literal" },
+      { text: ";", kind: "delimiter" },
+      { text: "fallback", kind: "identifier" },
+      { text: "??=", kind: "operator" },
+      { text: "10", kind: "literal" },
+      { text: ";", kind: "delimiter" },
+      { text: "return", kind: "keyword" },
+      { text: "result", kind: "identifier" },
+      { text: "||", kind: "operator" },
+      { text: "fallback", kind: "identifier" },
+      { text: ";", kind: "delimiter" },
+      { text: "}", kind: "delimiter" },
     ],
   },
 ];

@@ -1,15 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import SectionLabel from "@/components/section-label";
-import TokenPill from "@/components/token-pill";
 import {
-  DEFAULT_PROMPT,
   LEXICAL_EXAMPLES,
   LEXICAL_KIND_STYLES,
   MODELS,
 } from "@/constant/lexical";
-import { attentionMatrix } from "@/lib/attention";
 import { tokenLabel } from "@/lib/lexical";
 import Link from "next/link";
 import { useHuggingFaceTokenizer } from "@/hooks/use-hugging-face-tokenizer";
@@ -274,14 +271,7 @@ export default function Article() {
           tested by the comparison below.
         </div>
 
-        <AttentionVisualization
-
-        //activeToken={activeToken}
-        //attentionTokens={attentionTokens}
-        //matrix={matrix}
-        //selectedToken={selectedToken}
-        //setSelectedToken={setSelectedToken}
-        />
+        <AttentionVisualization />
       </section>
 
       <section id="experiment" className="scroll-mt-8 pt-32">

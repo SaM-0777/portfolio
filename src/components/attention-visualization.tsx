@@ -3,11 +3,16 @@
 import { useMemo, useState } from "react";
 import { tokenLabel } from "@/lib/lexical";
 import { attentionMatrix, Tokens } from "@/lib/attention";
+import { cn } from "@/lib/utils";
 
 export interface AttentionVisualizationProps {}
 
 export default function AttentionVisualization({}: AttentionVisualizationProps) {
   const [selectedToken, setSelectedToken] = useState(0);
+  const [selectedCell, setSelectedCell] = useState<{
+    row: number;
+    column: number;
+  } | null>(null);
   const attentionTokens = useMemo(
     () => Tokens.filter((token) => token.kind !== "space").slice(0, 16),
     [Tokens],
@@ -99,9 +104,17 @@ export default function AttentionVisualization({}: AttentionVisualizationProps) 
                     <button
                       key={`${rowIndex}-${columnIndex}`}
                       type="button"
-                      aria-label={`attention from ${tokenLabel(attentionTokens[rowIndex])} to ${tokenLabel(attentionTokens[columnIndex])}: ${Math.round(weight * 100)} percent`}
-                      onClick={() => setSelectedToken(rowIndex)}
-                      className="h-7 rounded-[3px] transition duration-200 ring-1 ring-[#e7a078]/10"
+                      onClick={() => {
+                        setSelectedToken(rowIndex);
+                        setSelectedCell({ row: rowIndex, column: columnIndex });
+                      }}
+                      className={cn(
+                        "h-7 rounded-[3px] transition duration-200 ring-1 hover:ring-[#e7a078]/88",
+                        selectedCell?.row === rowIndex &&
+                          selectedCell.column === columnIndex
+                          ? "ring-[#e7a078]/88"
+                          : "ring-[#e7a078]/10",
+                      )}
                       style={{
                         backgroundColor: `rgba(231,160,120,${0.0 + weight * 0.88})`,
                       }}
