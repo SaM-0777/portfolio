@@ -1,14 +1,13 @@
-import { MODELS } from "@/constant/lexical";
 import { fetchJsonWithProgress } from "./utils";
 
 export async function loadHuggingFaceTokenizer(
-  key: ModelKey,
+  tokenizerId: string,
   onProgress: (progress: number, file?: string) => void,
 ): Promise<HfTokenizer> {
   const { AutoTokenizer, PreTrainedTokenizer } =
     await import("@huggingface/transformers");
 
-  if (key === "swe") {
+  if (tokenizerId === "SamLegion888/Qwen3.5-SWE") {
     const base =
       "https://huggingface.co/SamLegion888/Qwen3.5-SWE/resolve/main/extended-vocab/";
     const [tokenizerJson, tokenizerConfig] = await Promise.all([
@@ -31,7 +30,7 @@ export async function loadHuggingFaceTokenizer(
   }
 
   const tokenizer = await AutoTokenizer.from_pretrained(
-    MODELS[key].tokenizerId,
+    tokenizerId,
     {
       progress_callback: (data) => {
         const progress =

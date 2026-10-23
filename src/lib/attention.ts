@@ -1,6 +1,6 @@
 import { seededRandom } from "./utils";
 
-export const EMBEDDING_DIM = 24;
+export const EMBEDDING_DIM = 2560;
 
 export function softmax(values: number[]) {
   const peak = Math.max(...values);

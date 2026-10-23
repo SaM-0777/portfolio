@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SectionLabel from "@/components/section-label";
 import TokenPill from "@/components/token-pill";
 import {
@@ -10,9 +10,9 @@ import {
   MODELS,
 } from "@/constant/lexical";
 import { attentionMatrix } from "@/lib/attention";
-import { tokenizeWithHuggingFace, tokenLabel } from "@/lib/lexical";
+import { tokenLabel } from "@/lib/lexical";
 import Link from "next/link";
-import { loadHuggingFaceTokenizer } from "@/lib/tokenizer";
+import { useHuggingFaceTokenizer } from "@/hooks/use-hugging-face-tokenizer";
 import { REFERENCES } from "@/constant/references";
 import AttentionVisualization from "@/components/attention-visualization";
 import ReferenceLink from "@/components/reference-link";
@@ -22,83 +22,13 @@ export default function Article() {
   const [model, setModel] = useState<ModelKey>("swe");
   const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
   const [selectedToken, setSelectedToken] = useState(0);
-  const [reloadNonce, setReloadNonce] = useState(0);
-  const [tokenizer, setTokenizer] = useState<HfTokenizer | null>(null);
-  const [tokenizerState, setTokenizerState] = useState<TokenizerState>({
-    status: "idle",
-    progress: 0,
-  });
-  const tokenizerCache = useRef<Partial<Record<ModelKey, HfTokenizer>>>({});
-
-  useEffect(() => {
-    let cancelled = false;
-    const cached = tokenizerCache.current[model];
-
-    if (cached) {
-      setTokenizer(() => cached);
-      setTokenizerState({ status: "ready", progress: 100 });
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    setTokenizer(null);
-    setTokenizerState({ status: "loading", progress: 0, file: "starting" });
-
-    void (async () => {
-      try {
-        const loaded = await loadHuggingFaceTokenizer(
-          model,
-          (progress, file) => {
-            if (cancelled) return;
-            setTokenizerState({
-              status: "loading",
-              progress,
-              file,
-            });
-          },
-        );
-
-        if (cancelled) return;
-        const typedTokenizer = loaded as HfTokenizer;
-        tokenizerCache.current[model] = typedTokenizer;
-        setTokenizer(() => typedTokenizer);
-        setTokenizerState({ status: "ready", progress: 100 });
-      } catch (error) {
-        if (cancelled) return;
-        setTokenizerState({
-          status: "error",
-          progress: 0,
-          message:
-            error instanceof Error
-              ? error.message
-              : "Hugging Face tokenizer could not be loaded.",
-        });
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [model, reloadNonce]);
-
-  const tokens = useMemo(
-    () => (tokenizer ? tokenizeWithHuggingFace(tokenizer, prompt) : []),
-    [prompt, tokenizer],
-  );
-  const lexicalComparisons = useMemo<Record<LanguageKey, DemoToken[]>>(() => {
-    const comparison = {} as Record<LanguageKey, DemoToken[]>;
-
-    for (const example of LEXICAL_EXAMPLES) {
-      comparison[example.language] = tokenizer
-        ? tokenizeWithHuggingFace(tokenizer, example.code)
-        : [];
-    }
-
-    return comparison;
-  }, [tokenizer]);
+  const initialTokenization = useRef(false);
+  const [tokens, setTokens] = useState<DemoToken[]>([]);
+  const [lexicalComparisons, setLexicalComparisons] = useState<
+    Record<LanguageKey, DemoToken[]>
+  >({} as Record<LanguageKey, DemoToken[]>);
   const attentionTokens = useMemo(
-    () => tokens.filter((token) => token.kind !== "space").slice(0, 12),
+    () => tokens.filter((token) => token.kind !== "space").slice(0, 16),
     [tokens],
   );
   const matrix = useMemo(
@@ -118,6 +48,38 @@ export default function Article() {
   //const k = linearWithoutBias(activeEmbedding, PROJECTION_WEIGHTS.k);
   //const v = linearWithoutBias(activeEmbedding, PROJECTION_WEIGHTS.v);
   const info = MODELS[model];
+  const {
+    state: tokenizerState,
+    isReady: tokenizerReady,
+    tokenize,
+    reload: reloadTokenizer,
+  } = useHuggingFaceTokenizer(info.tokenizerId);
+
+  const handleTokenize = useCallback(() => {
+    if (!tokenizerReady) return;
+
+    setTokens(tokenize(prompt));
+    setLexicalComparisons(
+      LEXICAL_EXAMPLES.reduce(
+        (comparison, example) => {
+          comparison[example.language] = tokenize(example.code);
+          return comparison;
+        },
+        {} as Record<LanguageKey, DemoToken[]>,
+      ),
+    );
+    setSelectedToken(0);
+  }, [prompt, tokenize, tokenizerReady]);
+
+  useEffect(() => {
+    if (!tokenizerReady || initialTokenization.current) {
+      return;
+    }
+
+    initialTokenization.current = true;
+    handleTokenize();
+  }, [handleTokenize, tokenizerReady]);
+
   const lexicalCount = tokens.filter(
     (token) => token.kind === "word" || token.kind === "number",
   ).length;
@@ -197,6 +159,7 @@ export default function Article() {
               onChange={(event) => {
                 setPrompt(event.target.value);
                 setSelectedToken(0);
+                setTokens([]);
               }}
               className="min-h-30 w-full resize-y bg-transparent font-mono text-[13px] leading-7 text-ink-black outline-none"
             />
@@ -212,12 +175,27 @@ export default function Article() {
                 onClick={() => {
                   setModel(key);
                   setSelectedToken(0);
+                  setTokens([]);
+                  setLexicalComparisons(
+                    {} as Record<LanguageKey, DemoToken[]>,
+                  );
                 }}
                 className={`rounded-full border px-3 py-2 text-[11px] transition duration-200 ${model === key ? "border-deep-forest bg-deep-forest text-white" : "border-[#d3d0c7] bg-white text-deep-forest hover:border-[#9b9e95]"}`}
               >
                 {MODELS[key].shortName}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={handleTokenize}
+              disabled={!tokenizerReady}
+              aria-busy={tokenizerState.status === "loading"}
+              className="ml-auto rounded-full border border-oxblood bg-oxblood px-4 py-2 text-[11px] text-white transition duration-200 hover:bg-[#8f3d27] disabled:cursor-wait disabled:opacity-45"
+            >
+              {tokenizerState.status === "loading"
+                ? "Loading tokenizer…"
+                : "Tokenize"}
+            </button>
           </div>
           <div className="p-5 sm:p-7">
             <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -271,7 +249,7 @@ export default function Article() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => setReloadNonce((value) => value + 1)}
+                    onClick={reloadTokenizer}
                     className="shrink-0 rounded-full border border-oxblood px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-oxblood transition hover:bg-[#fff5ed]"
                   >
                     Retry fetch
@@ -293,6 +271,11 @@ export default function Article() {
                 />
               ))}
             </div>
+            {tokenizerState.status === "ready" && tokens.length === 0 && (
+              <p className="mt-4 text-[12px] leading-5 text-[#858a82]">
+                Edit the prompt, then press <span className="font-medium text-[#a2492e]">Tokenize</span> to update the token sequence.
+              </p>
+            )}
             {tokenizerState.status === "ready" && tokens.length > 0 && (
               <div className="mt-6 rounded-2xl border border-[#d9d7ce] bg-[#f7f6f2] p-4">
                 <div className="mb-3 flex items-center justify-between gap-3">
@@ -385,7 +368,7 @@ export default function Article() {
         </div>
         <div className="mt-10 space-y-6">
           {LEXICAL_EXAMPLES.map((example) => {
-            const tokenizerTokens = lexicalComparisons[example.language];
+            const tokenizerTokens = lexicalComparisons[example.language] ?? [];
 
             return (
               <div
@@ -441,7 +424,7 @@ export default function Article() {
                           : "loading"}
                       </span>
                     </div>
-                    {tokenizerState.status === "ready" ? (
+                    {tokenizerState.status === "ready" && tokenizerTokens.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {tokenizerTokens.map((token, index) => (
                           <span
@@ -460,8 +443,9 @@ export default function Article() {
                       </div>
                     ) : (
                       <p className="rounded-xl border border-dashed border-[#cfcfc6] px-4 py-5 text-[12px] leading-6 text-[#858a82]">
-                        Fetching the selected tokenizer before rendering its
-                        pieces.
+                        {tokenizerState.status === "loading"
+                          ? "Fetching the selected tokenizer before rendering its pieces."
+                          : "Press Tokenize to render the selected tokenizer pieces."}
                       </p>
                     )}
                   </div>
