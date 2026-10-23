@@ -1,5 +1,14 @@
 export const blogData = [
   {
+    id: 6,
+    date: "Oct 22, 2026",
+    title: "Lexical Boundaries for Code Tokenization",
+    excerpt:
+      "Can a tokenizer that respects the lexical boundaries of programming-languages help a language model generalize syntax, semantics, and structure better? Programming languages have a built-in grammar...",
+    link: "/blog/qwen35-swe",
+    image: "/lexical_boundaries_blog.png",
+  },
+  {
     id: 5,
     date: "Aug 10, 2026",
     title: "ZULU: A Flow-Matching Action Model Architecture with DINOv2 Dense Representations",
