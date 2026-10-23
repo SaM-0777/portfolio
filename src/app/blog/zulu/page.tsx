@@ -1,9 +1,14 @@
+import { Metadata } from "next";
 import Title from "@/markdown/zulu/title.mdx";
 import Abstract from "@/markdown/zulu/abstract.mdx";
 import Introduction from "@/markdown/zulu/introduction.mdx";
 import Architecture from "@/markdown/zulu/architecture.mdx";
 import TrainingSetup from "@/markdown/zulu/training-setup.mdx";
-import { Metadata } from "next";
+
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 export const metadata: Metadata = {
   title: {

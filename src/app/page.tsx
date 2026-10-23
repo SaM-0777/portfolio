@@ -3,6 +3,11 @@ import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import { blogData } from "@/constant/blogs";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export default function Home() {
   return (
     <main className="relative w-full space-y-24">
