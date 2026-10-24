@@ -159,9 +159,13 @@ export default function Home() {
               </h4>
 
               <p className="text-ink-black/80 leading-relaxed text-base">
-                Zulu is a vision action model architecture trained entirely from scratch, integrating a DINOv2 vision encoder with a novel flow matching backbone for continuous action generation.
-                This experiment validates that high-performance robotic policy learning can be achieved without relying on the computational overhead of traditional,
-                heavy Vision-Language Model (VLM) backbones
+                Zulu is a vision action model architecture trained entirely from
+                scratch, integrating a DINOv2 vision encoder with a novel flow
+                matching backbone for continuous action generation. This
+                experiment validates that high-performance robotic policy
+                learning can be achieved without relying on the computational
+                overhead of traditional, heavy Vision-Language Model (VLM)
+                backbones
               </p>
 
               <div className="inline-flex items-center gap-4">
@@ -186,7 +190,9 @@ export default function Home() {
                   </span>
                 </Link>
                 <Link
-                  href={"https://huggingface.co/datasets/SamLegion888/DreamZero-DROID-Data-2000"}
+                  href={
+                    "https://huggingface.co/datasets/SamLegion888/DreamZero-DROID-Data-2000"
+                  }
                   target="_blank"
                   className="text-base font-medium hover:underline inline-flex items-center gap-0.5"
                 >
@@ -211,6 +217,53 @@ export default function Home() {
           <div className="flex flex-col md:flex-row gap-4 md:gap-12">
             <div className="md:w-1/4 shrink-0 pt-1">
               <span className="text-sm font-semibold uppercase tracking-widest text-ink-black/50">
+                October 22, 2026
+              </span>
+            </div>
+
+            <div className="md:w-3/4 space-y-4">
+              <h4 className="text-2xl font-semibold text-oxblood font-eb-garamond">
+                Lexical Boundaries for Code Tokenization
+              </h4>
+
+              <p className="text-ink-black/80 leading-relaxed text-base">
+                This small study compares Qwen3.5-4B-Base fine-tuned with its
+                standard tokenizer against an extended-vocabulary variant that
+                preserves keyword, operator, and delimiter boundaries. Both
+                variants use the same NVIDIA Nemotron-SFT-SWE-v3.5 dataset and
+                LoRA setup. In EvalPlus, the extended variant scores 52.4% vs.
+                45.7% on HumanEval and 47.0% vs. 39.0% on HumanEval+; the
+                standard tokenizer scores 65.3% vs. 64.6% on MBPP and 54.5% vs.
+                53.7% on MBPP+.
+              </p>
+
+              <div className="inline-flex items-center gap-4">
+                <Link
+                  href={"/blog/qwen35-swe"}
+                  className="text-base font-medium hover:underline inline-flex items-center gap-0.5"
+                >
+                  <span>Technical Report</span>
+                  <span>
+                    <ArrowUpRight className="size-4" />
+                  </span>
+                </Link>
+                <Link
+                  href={"https://huggingface.co/SamLegion888/Qwen3.5-SWE"}
+                  target="_blank"
+                  className="text-base font-medium hover:underline inline-flex items-center gap-0.5"
+                >
+                  <span>Model Card</span>
+                  <span>
+                    <ArrowUpRight className="size-4" />
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4 md:gap-12">
+            <div className="md:w-1/4 shrink-0 pt-1">
+              <span className="text-sm font-semibold uppercase tracking-widest text-ink-black/50">
                 October 2026
               </span>
             </div>
@@ -221,7 +274,12 @@ export default function Home() {
               </h4>
 
               <p className="text-ink-black/80 leading-relaxed text-base">
-                This experiment implements predictive coding from scratch in PyTorch across supervised learning and reinforcement learning. For MNIST, a convolutional model performs iterative activity inference and updates parameters using local prediction errors. For Catcher, a PPO agent combines actor–critic task signals with predictive-coding inference and local parameter updates.
+                This experiment implements predictive coding from scratch in
+                PyTorch across supervised learning and reinforcement learning.
+                For MNIST, a convolutional model performs iterative activity
+                inference and updates parameters using local prediction errors.
+                For Catcher, a PPO agent combines actor–critic task signals with
+                predictive-coding inference and local parameter updates.
               </p>
 
               <div className="inline-flex items-center gap-4">
@@ -446,16 +504,21 @@ export default function Home() {
 
               <ul className="list-disc list-outside ml-5 text-ink-black/80 leading-relaxed space-y-2 text-base pt-2">
                 <li>
-                  Engineered ML-driven infrastructure for user content and activity workflows,
-                  developing content ranking algorithms that optimize content delivery
-                  and brand advertising reach based on real-time user engagement and
-                  social graph metrics
+                  Engineered ML-driven infrastructure for user content and
+                  activity workflows, developing content ranking algorithms that
+                  optimize content delivery and brand advertising reach based on
+                  real-time user engagement and social graph metrics
                 </li>
                 <li>
-                  Designed and implemented real-time data pipelines processing large-scale social and market signals, powering production reputation models for automated content filtering
+                  Designed and implemented real-time data pipelines processing
+                  large-scale social and market signals, powering production
+                  reputation models for automated content filtering
                 </li>
                 <li>
-                  Developed scalable event-driven systems and AI-assisted analytics pipelines, owning features from design through production and improving reliability, observability and iteration speed
+                  Developed scalable event-driven systems and AI-assisted
+                  analytics pipelines, owning features from design through
+                  production and improving reliability, observability and
+                  iteration speed
                 </li>
               </ul>
             </div>
@@ -480,18 +543,19 @@ export default function Home() {
 
               <ul className="list-disc list-outside ml-5 text-ink-black/80 leading-relaxed space-y-2 text-base pt-2">
                 <li>
-                  Built and maintained the core Next.js frontend for RaaS platform,
-                  focusing on creating intuitive interfaces for complex operational
-                  workflows and data visualization
+                  Built and maintained the core Next.js frontend for RaaS
+                  platform, focusing on creating intuitive interfaces for
+                  complex operational workflows and data visualization
                 </li>
                 <li>
-                  Engineered scalable integrations between user-facing dashboards and backend services,
-                  utilizing REST APIs and gRPC to ensure seamless, real-time data delivery
+                  Engineered scalable integrations between user-facing
+                  dashboards and backend services, utilizing REST APIs and gRPC
+                  to ensure seamless, real-time data delivery
                 </li>
                 <li>
                   Designed reusable component systems for rapid internal
-                  prototypes, accelerating iteration cycles for monitoring
-                  tools and deployment
+                  prototypes, accelerating iteration cycles for monitoring tools
+                  and deployment
                 </li>
               </ul>
             </div>
@@ -578,4 +642,3 @@ export default function Home() {
     </main>
   );
 }
-
